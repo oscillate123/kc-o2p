@@ -1,0 +1,31 @@
+version: '3'
+
+services:
+  mysql:
+    image: mysql:5.7
+    volumes:
+      - mysql_data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: password1234
+      MYSQL_DATABASE: keycloak
+      MYSQL_USER: keycloak
+      MYSQL_PASSWORD: keycloak1234
+
+  keycloak:
+    image: jboss/keycloak
+    environment:
+      DB_VENDOR: MYSQL
+      DB_ADDR: mysql
+      DB_DATABASE: keycloak
+      DB_USER: keycloak
+      DB_PASSWORD: keycloak1234
+      KEYCLOAK_USER: admin
+      KEYCLOAK_PASSWORD: pass12345
+    ports:
+      - 8080:8080
+    depends_on:
+      - mysql
+
+volumes:
+  mysql_data:
+    driver: local
