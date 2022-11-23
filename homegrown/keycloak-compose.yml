@@ -26,6 +26,19 @@ services:
     depends_on:
       - mysql
 
+  oauth2-proxy:
+    container_name: oauth2-proxy
+    image: quay.io/oauth2-proxy/oauth2-proxy:v7.4.0
+    command: --config /oauth2-proxy.cfg
+    ports:
+      - 4180:4180/tcp
+    hostname: oauth2-proxy
+    volumes:
+      - "./oauth2-proxy-keycloak.cfg:/oauth2-proxy.cfg"
+    restart: unless-stopped
+    depends_on:
+      - keycloak
+
 volumes:
   mysql_data:
     driver: local
