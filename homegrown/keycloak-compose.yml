@@ -53,9 +53,9 @@ services:
     image: redis:6.2.7
     ports:
       - "26379:26379"
-    command: "redis-server /etc/sentinel.conf --sentinel"
+    command: "redis-server /etc/sentinel/sentinel.conf --sentinel"
     volumes:
-      - "./redis/data/sentinel.conf:/etc/sentinel.conf"
+      - "./redis/data/sentinel:/etc/sentinel"
     depends_on:
       - redis-master
       - redis-slave
