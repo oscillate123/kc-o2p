@@ -38,6 +38,7 @@ services:
     restart: unless-stopped
     depends_on:
       - keycloak
+      - mysql
 
 volumes:
   mysql_data:
