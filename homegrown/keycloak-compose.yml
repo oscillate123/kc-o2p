@@ -19,17 +19,57 @@ services:
       DB_DATABASE: keycloak
       DB_USER: keycloak
       DB_PASSWORD: keycloak1234
-      KEYCLOAK_USER: admin
-      KEYCLOAK_PASSWORD: pass12345
+      # KEYCLOAK_USER: admin
+      # KEYCLOAK_PASSWORD: pass12345
     ports:
       - 8080:8080
     depends_on:
       - mysql
 
+  redis-master:
+    container_name: "redis-master"
+    image: redis:6.2.7
+    ports:
+      - "6379:6379"
+    command: "redis-server /etc/redis.conf"
+    volumes:
+      - "./redis/data/master:/data/"
+      - "./redis/master.conf:/etc/redis.conf"
+
+  redis-slave:
+    container_name: "redis-slave"
+    image: redis:6.2.7
+    ports:
+      - "6380:6379"
+    command: "redis-server /etc/redis.conf"
+    volumes:
+      - "./redis/data/slave:/data/"
+      - "./redis/slave.conf:/etc/redis.conf"
+    depends_on:
+      - redis-master
+
+  redis-sentinel:
+    container_name: 'redis-sentinel'
+    image: redis:6.2.7
+    ports:
+      - "26379:26379"
+    command: "redis-server /etc/sentinel.conf --sentinel"
+    volumes:
+      - "./redis/data/sentinel.conf:/etc/sentinel.conf"
+    depends_on:
+      - redis-master
+      - redis-slave
+
   oauth2-proxy:
     container_name: oauth2-proxy
     image: quay.io/oauth2-proxy/oauth2-proxy:v7.4.0
     command: --config /oauth2-proxy.cfg
+    environment:
+      OAUTH2_PROXY_SESSION_STORE_TYPE: "redis"
+      OAUTH2_PROXY_REDIS_USE_SENTINEL: "true"
+      OAUTH2_PROXY_REDIS_CONNECTION_URL: redis://redis-sentinel:26379
+      OAUTH2_PROXY_REDIS_SENTINEL_MASTER_NAME: mymaster
+      OAUTH2_PROXY_REDIS_SENTINEL_CONNECTION_URLS: redis://redis-sentinel:26379
     ports:
       - 4180:4180/tcp
     hostname: oauth2-proxy
@@ -39,6 +79,9 @@ services:
     depends_on:
       - keycloak
       - mysql
+      - redis-master
+      - redis-slave
+      - redis-sentinel
 
 volumes:
   mysql_data:
